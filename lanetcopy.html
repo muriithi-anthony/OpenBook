@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenBook - Online Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-900 h-screen w-screen m-auto">
+    <nav
+      class="w-full fixed z-10 top-0 h-[50px] bg-blue-600 flex justify-between items-center text-white px-2"
+    >
+      <h1 class="font-bold text-[16px] sm:text-[24px]">OpenBook</h1>
+      <div class="flex gap-2">
+        <button
+          id="history"
+          class="border bg-white p-2 h-[80%] text-black rounded-lg"
+        >
+          History
+        </button>
+        <button
+          id="loginRegister"
+          class="border bg-white p-2 h-[80%] text-black rounded-lg"
+        >
+          Login/Register</button
+        ><button
+          id="logout"
+          class="hidden border border-red-300 bg-red-300 p-2 h-[80%] text-black rounded-lg"
+        >
+          Logout
+        </button>
+      </div>
+    </nav>
+
+    <section id="hero" class="mt-12 text-center">
+      <h1 class="font-bold text-2xl mb-2 text-balance">
+        Discover and Track Your Favorite Books
+      </h1>
+      <p>Search thousands of books instantly</p>
+      <div class="text-center mt-8 flex justify-center items-center">
+        <div
+          class="w-auto auto bg-black rounded-lg flex justify-center items-center overflow-hidden"
+        >
+          <input
+            type="text"
+            placeholder="Search books..."
+            id="searchInput"
+            class="border-2 border-black p-2 outline-none rounded-l-lg border-r-0"
+          />
+          <button
+            id="searchBtn"
+            class="border-2 bg-blue-600 text-white p-2 rounded-r-lg border-black border-l-0"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="mt-12 px-2 sm:p-4 md:p-6">
+      <h2 class="font-bold text-xl mb-4">History</h2>
+      <div
+        class="w-full h-auto grid grid-cols-1 overflow-y-auto sm:grid-cols-2 md:grid-cols-3 gap-2 mb-2"
+      ></div>
+    </section>
+
+    <div
+      id="modalContainer"
+      class="hidden absolute top-0 h-screen w-screen bg-[#00000080] flex justify-center items-center"
+    >
+      <div
+        id="modal"
+        class="w-[500px] h-[300px] bg-white rounded-lg p-2 flex justify-center items-center"
+      >
+        <div id="authInputs">
+          <div class="flex justify-between">
+            <p id="authTitle" class="text-[24px] font-bold inline-block">
+              Login
+            </p>
+            <button
+              id="cancelBtn"
+              class="relative pr-5 font-bold hover:text-red-600"
+            >
+              X
+            </button>
+          </div>
+          <input
+            id="username"
+            type="text"
+            placeholder="Enter Username"
+            class="border w-full rounded-md p-2 mt-2"
+          />
+          <input
+            id="password"
+            type="password"
+            placeholder="Enter Password"
+            class="border w-full rounded-md p-2 mt-2"
+          />
+          <button
+            id="submitter"
+            class="w-full p-2 mt-4 bg-blue-600 text-white rounded-md mb-2"
+          >
+            Login
+          </button>
+          <a id="toggleAuth" href="" class="underline text-blue-600"
+            ><p id="authDesc" class="text-center">
+              Don't have an account? Click here
+            </p></a
+          >
+        </div>
+      </div>
+    </div>
+
+    <footer
+      class="fixed w-full bottom-0 h-auto bg-blue-600 p-2 text-center text-white"
+    >
+      © 2025 OpenBook. All rights reserved.
+    </footer>
+  </body>
+  <script>
+    const historyBtn = document.getElementById("history");
+    const searchButton = document.getElementById("searchBtn");
+    const loginRegisterBtn = document.getElementById("loginRegister");
+    const logout = document.getElementById("logout");
+    const resultDiv = document.querySelector("#results div");
+    const modalContainer = document.getElementById("modalContainer");
+    const cancelBtn = document.getElementById("cancelBtn");
+    let searchResults = [];
+    let submitterBtn = document.getElementById("submitter");
+    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+
+    const getData = async () => {
+      try {
+        const searchValue = document.getElementById("searchInput").value.trim();
+        if (!searchValue) {
+          alert("Cannot search for empty field");
+          return;
+        }
+
+        const res = await fetch(
+          `https://gutendex.com/books/?search=${searchValue}`
+        );
+        const data = await res.json();
+        searchResults = data.results;
+        console.log(searchResults);
+
+        const resultDiv = document.querySelector("#results div");
+        resultDiv.innerHTML = "";
+
+        if (searchResults.length === 0) {
+          const notFound = document.createElement("p");
+          notFound.textContent = `No results found matching "${searchValue}"`;
+          notFound.className = "text-center mt-12 text-black text-[16px]";
+          const resultss = results;
+          resultss.appendChild(notFound);
+          return;
+        }
+
+        searchResults.forEach((book) => {
+          const cover = book.formats["image/jpeg"];
+          const author =
+            book.authors.length > 0 ? book.authors[0].name : "Unknown";
+
+          const card = document.createElement("div");
+          card.className =
+            "border rounded-lg shadow bg-white p-2 flex flex-col items-center";
+
+          card.innerHTML = `
+        <img src="${cover}" alt="${book.title}" class="w-full h-40 object-cover rounded-lg mb-2"/>
+        <h3 class="font-bold text-sm text-center">${book.title}</h3>
+        <p class="text-xs text-gray-600">${author}</p>
+        <button data-id=${book.id} class="readBtn relative bottom-0 text-center text-white font-bold h-[30px] w-full bg-blue-600 rounded-lg ">Read</button>
+      `;
+
+          resultDiv.appendChild(card);
+        });
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    searchButton.addEventListener("click", getData);
+
+    resultDiv.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("readBtn")) {
+        const bookId = e.target.dataset.id;
+        const book = searchResults.find((b) => b.id == bookId);
+        console.log(book);
+
+        if (book) {
+          const readLink =
+            book.formats["text/html"] || book.formats["text/plain"];
+
+          if (readLink) {
+            resultDiv.innerHTML = ``;
+            resultDiv.classList.remove("grid");
+            resultDiv.innerHTML = `
+          <iframe
+            src="${readLink}"
+            class="w-full h-[70vh] border rounded-lg">
+          </iframe>
+        `;
+            document.querySelector("#results h2").textContent = book.title;
+          } else {
+            alert("No readable format available for this book.");
+          }
+        }
+      }
+    });
+
+    logout.addEventListener("click", () => {
+      localStorage.removeItem("currentUser");
+      if (!currentUser.username && !currentUser.password) {
+        loginRegisterBtn.classList.remove("hidden");
+        logout.classList.add("hidden");
+      }
+    });
+
+    if (currentUser && currentUser == {}) {
+      loginRegisterBtn.classList.add("hidden");
+      logout.classList.remove("hidden");
+      historyBtn.classList.add("hidden");
+    }
+
+    cancelBtn.addEventListener("click", () => {
+      modalContainer.classList.add("hidden");
+    });
+
+    const handleAuth = async () => {
+      modalContainer.classList.remove("hidden");
+
+      let authDesc = document.getElementById("authDesc");
+      let isRegistering = false;
+
+      const authorise = async () => {
+        let username = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+        if (!username && !password) {
+          return window.alert("All fields required");
+        }
+
+        const users = JSON.parse(localStorage.getItem("users")) || {};
+
+        if (!isRegistering) {
+          const user = users[username].password === password;
+
+          if (!user) {
+            window.alert("Invalid username or password");
+            toggleAuth.click();
+          } else {
+            localStorage.setItem("currentUser", JSON.stringify(user));
+            cancelBtn.click();
+            loginRegisterBtn.classList.add("hidden");
+            logout.classList.remove("hidden");
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+          }
+        } else {
+          const existing = users.find((u) => u.username === username);
+          if (existing) {
+            window.alert("User already exists");
+            toggleAuth.click();
+          } else {
+            const user = { username, password, history: [] };
+            users.unshift(user);
+            localStorage.setItem("users", JSON.stringify(users));
+            window.alert("User successfully created, Login");
+            toggleAuth.click();
+          }
+        }
+      };
+      submitterBtn.addEventListener("click", authorise);
+
+      let toggleAuth = document.getElementById("toggleAuth");
+      toggleAuth.addEventListener("click", (e) => {
+        e.preventDefault();
+        console.log("clikcked");
+        isRegistering = !isRegistering;
+        let authTitle = document.getElementById("authTitle");
+        if (isRegistering) {
+          authTitle.textContent = "Register";
+          submitterBtn.textContent = "Register";
+          authDesc.textContent = "Already have an account? Login";
+        } else {
+          authTitle.textContent = "Login";
+          submitterBtn.textContent = "Login";
+          authDesc.textContent = "Don't have an account? Click here";
+        }
+      });
+    };
+    loginRegisterBtn.addEventListener("click", handleAuth);
+  </script>
+</html>
