@@ -127,7 +127,7 @@
     const cancelBtn = document.getElementById("cancelBtn");
     let searchResults = [];
     let submitterBtn = document.getElementById("submitter");
-    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || "";
+    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
     console.log(currentUser);
 
     const getData = async () => {
@@ -216,7 +216,7 @@
       }
     });
 
-    if (currentUser) {
+    if (currentUser && currentUser == {}) {
       loginRegisterBtn.classList.add("hidden");
       logout.classList.remove("hidden");
     }
@@ -243,9 +243,7 @@
         const users = JSON.parse(localStorage.getItem("users")) || [];
 
         if (!isRegistering) {
-          const user = users.find(
-            (u) => u.username === username && u.password === password
-          );
+          const user = users[username].password === password && users[username];
 
           if (!user) {
             window.alert("Invalid username or password");
@@ -257,7 +255,7 @@
             logout.classList.remove("hidden");
           }
         } else {
-          const existing = users.find((u) => u.username === username);
+          const existing = users[username];
           if (existing) {
             window.alert("User already exists");
             toggleAuth.click();
