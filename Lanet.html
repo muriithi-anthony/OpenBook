@@ -61,7 +61,9 @@
       <h2 class="font-bold text-xl mb-4">Results</h2>
       <div
         class="w-full h-auto grid grid-cols-1 overflow-y-auto sm:grid-cols-2 md:grid-cols-3 gap-2 mb-2"
-      ></div>
+      >
+        <iframe class="hidden h-[70vh] border rounded-lg"></iframe>
+      </div>
     </section>
 
     <div
@@ -187,6 +189,15 @@
         const book = searchResults.find((b) => b.id == bookId);
         console.log(book);
 
+        if (currentUser && currentUser.username) {
+          if (!currentUser.history.some((item) => item.id === book.id))
+            currentUser.history.unshift(book);
+          const users = JSON.parse(localStorage.getItem("users") || {});
+          users[currentUser.username].history = currentUser.history;
+          localStorage.setItem("users", JSON.stringify(users));
+          localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
+
         if (book) {
           const readLink =
             book.formats["text/html"] || book.formats["text/plain"];
@@ -210,13 +221,11 @@
 
     logout.addEventListener("click", () => {
       localStorage.removeItem("currentUser");
-      if (!currentUser.username && !currentUser.password) {
-        loginRegisterBtn.classList.remove("hidden");
-        logout.classList.add("hidden");
-      }
+      loginRegisterBtn.classList.remove("hidden");
+      logout.classList.add("hidden");
     });
 
-    if (currentUser && currentUser == {}) {
+    if (currentUser && currentUser.username) {
       loginRegisterBtn.classList.add("hidden");
       logout.classList.remove("hidden");
     }
@@ -240,7 +249,7 @@
           return window.alert("All fields required");
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const users = JSON.parse(localStorage.getItem("users")) || {};
 
         if (!isRegistering) {
           const user = users[username].password === password && users[username];
@@ -251,6 +260,8 @@
           } else {
             localStorage.setItem("currentUser", JSON.stringify(user));
             cancelBtn.click();
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
             loginRegisterBtn.classList.add("hidden");
             logout.classList.remove("hidden");
           }
@@ -261,7 +272,7 @@
             toggleAuth.click();
           } else {
             const user = { username, password, history: [] };
-            users.unshift(user);
+            users[username] = user;
             localStorage.setItem("users", JSON.stringify(users));
             window.alert("User successfully created, Login");
             toggleAuth.click();
