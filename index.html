@@ -212,8 +212,11 @@
         }
 
         if (book) {
-          const readLink =
+          let readLink =
             book.formats["text/html"] || book.formats["text/plain"];
+          if (readLink && readLink.startsWith("http://")) {
+            readLink = readLink.replace("http://", "https://");
+          }
 
           if (readLink) {
             resultDiv.innerHTML = ``;
