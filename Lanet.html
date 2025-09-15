@@ -114,7 +114,7 @@
     </div>
 
     <footer
-      class="fixed w-full bottom-0 h-auto bg-blue-600 p-2 text-center text-white"
+      class="fixed w-full bottom-0 h-auto bg-blue-600 p-2 text-center text-white rounded-b-lg"
     >
       © 2025 OpenBook. All rights reserved.
     </footer>
@@ -175,6 +175,7 @@
         <button data-id=${book.id} class="readBtn relative bottom-0 text-center text-white font-bold h-[30px] w-full bg-blue-600 rounded-lg ">Read</button>
       `;
 
+          document.querySelector("#results h2").textContent = "Results";
           resultDiv.appendChild(card);
         });
       } catch (error) {
@@ -186,10 +187,14 @@
     resultDiv.addEventListener("click", async (e) => {
       if (e.target.classList.contains("readBtn")) {
         const bookId = e.target.dataset.id;
-        const book = searchResults.find((b) => b.id == bookId);
+        let book = searchResults.find((b) => b.id == bookId);
+
+        if (!book && currentUser && currentUser.history) {
+          book = currentUser.history.find((b) => b.id == bookId);
+        }
         console.log(book);
 
-        if (currentUser && currentUser.username) {
+        if (currentUser && currentUser.username && book) {
           if (!currentUser.history.some((item) => item.id === book.id))
             currentUser.history.unshift(book);
           const users = JSON.parse(localStorage.getItem("users") || {});
@@ -223,11 +228,14 @@
       localStorage.removeItem("currentUser");
       loginRegisterBtn.classList.remove("hidden");
       logout.classList.add("hidden");
+      historyBtn.classList.remove("hidden");
     });
 
     if (currentUser && currentUser.username) {
       loginRegisterBtn.classList.add("hidden");
       logout.classList.remove("hidden");
+    } else {
+      historyBtn.classList.add("hidden");
     }
 
     cancelBtn.addEventListener("click", () => {
@@ -299,5 +307,27 @@
       });
     };
     loginRegisterBtn.addEventListener("click", handleAuth);
+
+    historyBtn.addEventListener("click", () => {
+      document.querySelector("#results h2").textContent = "History";
+      resultDiv.innerHTML = ``;
+      const booksRead = currentUser.history;
+
+      booksRead.forEach((book) => {
+        const author =
+          book.authors.length > 0 ? book.authors[0].name : "Unknown";
+        const readBook = document.createElement("div");
+        readBook.className =
+          "border rounded-lg shadow bg-white p-2 flex flex-col items-center";
+        readBook.innerHTML = `
+        <img src="${book.formats["image/jpeg"]}" alt="${book.title}" class="w-full h-40 object-cover rounded-lg mb-2"/>
+        <h3 class="font-bold text-sm text-center">${book.title}</h3>
+        <p class="text-xs text-gray-600">${author}</p>
+        <button data-id=${book.id} class="readBtn relative bottom-0 text-center text-white font-bold h-[30px] w-full bg-blue-600 rounded-lg ">Read</button>
+      `;
+
+        resultDiv.appendChild(readBook);
+      });
+    });
   </script>
 </html>
